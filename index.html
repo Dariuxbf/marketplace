@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<title>Marketplace fără login</title>
+
+<style>
+body {
+  font-family: Arial;
+  margin: 0;
+  background: #f4f4f4;
+}
+
+header {
+  background: #34495e;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+form {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+}
+
+button {
+  padding: 10px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.produs {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+img {
+  max-width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.search {
+  margin-bottom: 15px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Marketplace</h1>
+</header>
+
+<div class="container">
+
+  <input type="text" id="search" class="search" placeholder="Caută produs..." oninput="afiseazaProduse()">
+
+  <form id="form">
+    <h2>Adaugă produs</h2>
+    <input type="text" id="titlu" placeholder="Titlu" required>
+    <textarea id="descriere" placeholder="Descriere" required></textarea>
+    <input type="number" id="pret" placeholder="Preț" required>
+    <input type="file" id="imagine" accept="image/*">
+    <button type="submit">Adaugă</button>
+  </form>
+
+  <div id="lista"></div>
+
+</div>
+
+<script>
+let produse = JSON.parse(localStorage.getItem("produse")) || [];
+
+function afiseazaProduse(){
+  const lista = document.getElementById("lista");
+  const search = document.getElementById("search").value.toLowerCase();
+
+  lista.innerHTML = "";
+
+  produse
+    .filter(p => p.titlu.toLowerCase().includes(search))
+    .forEach((p, index) => {
+      lista.innerHTML += `
+        <div class="produs">
+          <h3>${p.titlu}</h3>
+          ${p.img ? `<img src="${p.img}">` : ""}
+          <p>${p.descriere}</p>
+          <strong>${p.pret} lei</strong><br><br>
+          <button onclick="sterge(${index})">Șterge</button>
+        </div>
+      `;
+    });
+}
+
+document.getElementById("form").addEventListener("submit", function(e){
+  e.preventDefault();
+
+  const titlu = document.getElementById("titlu").value;
+  const descriere = document.getElementById("descriere").value;
+  const pret = document.getElementById("pret").value;
+  const file = document.getElementById("imagine").files[0];
+
+  if(file){
+    const reader = new FileReader();
+    reader.onload = function(){
+      produse.push({
+        titlu,
+        descriere,
+        pret,
+        img: reader.result
+      });
+      save();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    produse.push({ titlu, descriere, pret });
+    save();
+  }
+
+  this.reset();
+});
+
+function sterge(index){
+  produse.splice(index, 1);
+  save();
+}
+
+function save(){
+  localStorage.setItem("produse", JSON.stringify(produse));
+  afiseazaProduse();
+}
+
+afiseazaProduse();
+</script>
+
+</body>
+</html>
